@@ -13,10 +13,18 @@ ENV/
 *.sqlite3
 *.db
 data/
+backend/data/uploads/
 backend/db/migrations/versions/*.pyc
+
+# ML Model Checkpoints & Weights
+backend/agents/vision/weights/
+*.pt
+*.pth
+*.h5
 
 # Environment & API Keys
 .env
+backend/.env
 .env.local
 *.pem
 

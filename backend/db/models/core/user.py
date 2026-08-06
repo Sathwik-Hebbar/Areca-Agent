@@ -1,9 +1,9 @@
-import uuid
-from datetime import datetime
-from sqlalchemy import String, DateTime, Enum as SQLEnum
+import enum
+from sqlalchemy import text, String, Enum as SAEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.db.base import Base
-import enum
 
 
 class UserRole(str, enum.Enum):
@@ -15,12 +15,29 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = {"schema": "core"}
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
-    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.FARMER, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+    username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    phone: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, name="userrole", schema="core", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        server_default=UserRole.FARMER.value,
+    )
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
+    last_login_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
-    farmer_profile: Mapped["FarmerProfile"] = relationship("FarmerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    farmer_profile: Mapped["FarmerProfile"] = relationship(
+        "FarmerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )

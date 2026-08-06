@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
-from backend.db.session import engine, db_url
-from backend.db.base import Base
+from backend.db.session import engine
 
 # Import all models to ensure schema registration before table creation
 import backend.db.models  # noqa
@@ -40,7 +39,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup_db_check():
     """Ensure database tables are created (especially when running sqlite or local dev)."""
-    if db_url.startswith("sqlite"):
+    if settings.DATABASE_URL.startswith("sqlite"):
         Base.metadata.create_all(bind=engine)
 
 

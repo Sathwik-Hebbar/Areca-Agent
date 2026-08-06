@@ -1,10 +1,11 @@
-from pydantic import BaseModel
-from datetime import date, datetime
+import uuid
+from datetime import date
+from pydantic import BaseModel, ConfigDict
 from backend.db.models.core.crop_block import BlockStatus
 
 
 class CropBlockCreate(BaseModel):
-    farm_id: str
+    farm_id: uuid.UUID
     block_name: str
     variety: str | None = None
     planting_date: date
@@ -24,9 +25,13 @@ class CropBlockUpdate(BaseModel):
     notes: str | None = None
 
 
+class CropBlockStatusUpdate(BaseModel):
+    status: BlockStatus
+
+
 class CropBlockResponse(BaseModel):
-    id: str
-    farm_id: str
+    id: uuid.UUID
+    farm_id: uuid.UUID
     block_name: str
     variety: str | None = None
     planting_date: date
@@ -36,5 +41,4 @@ class CropBlockResponse(BaseModel):
     status: BlockStatus
     notes: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

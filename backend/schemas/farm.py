@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+import uuid
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 from backend.db.models.core.farm import IrrigationType
 
 
@@ -9,7 +10,7 @@ class FarmCreate(BaseModel):
     longitude: float | None = None
     total_area_acres: float | None = None
     soil_type: str | None = None
-    irrigation_type: IrrigationType = IrrigationType.DRIP
+    irrigation_type: IrrigationType | None = IrrigationType.DRIP
 
 
 class FarmUpdate(BaseModel):
@@ -22,8 +23,8 @@ class FarmUpdate(BaseModel):
 
 
 class FarmResponse(BaseModel):
-    id: str
-    farmer_id: str
+    id: uuid.UUID
+    farmer_id: uuid.UUID
     farm_name: str
     latitude: float | None = None
     longitude: float | None = None
@@ -32,5 +33,4 @@ class FarmResponse(BaseModel):
     irrigation_type: IrrigationType | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

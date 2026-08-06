@@ -3,13 +3,15 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 from backend.config import settings
 
-# Handle SQLite vs PostgreSQL URL formats
-db_url = settings.DATABASE_URL
-if db_url.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-    engine = create_engine(db_url, connect_args=connect_args)
-else:
-    engine = create_engine(db_url, pool_pre_ping=True)
+# DATABASE_URL is read from backend/.env via config.py (pydantic-settings).
+# No host/port defaults are assumed here — the full Neon connection string
+# (including ?sslmode=require) must be set in backend/.env.
+# pool_pre_ping=True silently recycles stale connections, which is important
+# for a cloud-hosted database where idle connections may be dropped.
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -21,3 +23,4 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+

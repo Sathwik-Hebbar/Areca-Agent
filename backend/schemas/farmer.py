@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+import uuid
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 
 class FarmerProfileCreate(BaseModel):
@@ -9,7 +10,7 @@ class FarmerProfileCreate(BaseModel):
     district: str | None = None
     state: str | None = None
     pincode: str | None = None
-    preferred_language: str = "en"
+    preferred_language: str = "kn"
     preferred_mandi: str | None = None
 
 
@@ -25,17 +26,16 @@ class FarmerProfileUpdate(BaseModel):
 
 
 class FarmerProfileResponse(BaseModel):
-    id: str
-    user_id: str
+    id: uuid.UUID
+    user_id: uuid.UUID
     full_name: str
     village: str | None = None
     taluk: str | None = None
     district: str | None = None
     state: str | None = None
     pincode: str | None = None
-    preferred_language: str
+    preferred_language: str | None = None
     preferred_mandi: str | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
