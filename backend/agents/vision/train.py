@@ -227,7 +227,7 @@ def run_training(
             break
 
     print("\n" + "=" * 60)
-    print(f"🏆 TRAINING COMPLETE — BEST CHECKPOINT SUMMARY")
+    print("=== TRAINING COMPLETE - BEST CHECKPOINT SUMMARY ===")
     print(f"   Best Checkpoint Epoch: Epoch {best_epoch}")
     print(f"   Best Validation Macro F1: {best_macro_f1:.4f}")
     print(f"   Saved Checkpoint File: {save_path.resolve()}")

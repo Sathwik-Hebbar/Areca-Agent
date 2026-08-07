@@ -2,23 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.db.session import engine
+from backend.db.base import Base
 
 # Import all models to ensure schema registration before table creation
 import backend.db.models  # noqa
 
-# Import routers
-from backend.auth import auth_router
-from backend.core import core_router
-from backend.agents import (
-    vision_router,
-    diagnosis_router,
-    weather_router,
-    market_router,
-    advisory_router,
-    coordinator_router,
-    learning_router,
-    notifying_router
-)
+# Explicit direct router imports (decoupled from package __init__.py files)
+from backend.auth.router import router as auth_router
+from backend.core.router import router as core_router
+from backend.agents.vision.router import router as vision_router
+from backend.agents.diagnosis.router import router as diagnosis_router
+from backend.agents.weather.router import router as weather_router
+from backend.agents.market.router import router as market_router
+from backend.agents.advisory.router import router as advisory_router
+from backend.agents.coordinator.router import router as coordinator_router
+from backend.agents.learning.router import router as learning_router
+from backend.agents.notifying.router import router as notifying_router
 
 app = FastAPI(
     title="ArecaAgent Backend API",
