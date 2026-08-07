@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from backend.agents.vision.model import ArecanutCNN, CLASS_NAMES, FOLDER_TO_CLASS, LOW_VOLUME_CLASSES
 from backend.agents.vision.preprocess import eval_transform, get_train_transform
 
-DATASET_ROOT = Path("E:/Areca-Agent/data/Arecanut_dataset")
+DATASET_ROOT = Path(__file__).resolve().parents[3] / "data" / "Arecanut_dataset"
 WEIGHTS_DIR = Path(__file__).parent / "weights"
 
 
