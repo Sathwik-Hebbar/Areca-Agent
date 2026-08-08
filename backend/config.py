@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_DAILY_BUDGET_CAP: int = 100
 
+    # WEATHER_API_KEY is deprecated as Weather Agent now uses Open-Meteo (no API key required)
     WEATHER_API_KEY: str = ""
     DATA_GOV_IN_API_KEY: str = ""
 

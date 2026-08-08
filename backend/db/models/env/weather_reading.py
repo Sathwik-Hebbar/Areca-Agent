@@ -8,6 +8,8 @@ from backend.db.base import Base
 class WeatherSource(str, enum.Enum):
     API = "api"
     FORECAST = "forecast"
+    SYNTHETIC_FALLBACK = "synthetic_fallback"
+    HISTORICAL_BACKFILL = "historical_backfill"
 
 
 class WeatherReading(Base):

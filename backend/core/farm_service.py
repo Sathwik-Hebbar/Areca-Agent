@@ -4,11 +4,41 @@ from backend.db.models.core.farm import Farm
 from backend.schemas.farm import FarmCreate, FarmUpdate
 
 
+from backend.db.models.env.weather_reading import WeatherReading
+from backend.agents.weather.api_client import (
+    get_grid_region_key,
+    backfill_historical_weather,
+    DEFAULT_LAT,
+    DEFAULT_LON,
+)
+
+
 def create_farm(db: Session, farmer_id: str, data: FarmCreate) -> Farm:
     farm = Farm(farmer_id=str(farmer_id), **data.model_dump())
     db.add(farm)
     db.commit()
     db.refresh(farm)
+
+    # Trigger 14-day historical weather backfill at farm creation if region_key has insufficient data
+    try:
+        lat = float(farm.latitude) if farm.latitude is not None else DEFAULT_LAT
+        lon = float(farm.longitude) if farm.longitude is not None else DEFAULT_LON
+        region_key = get_grid_region_key(lat, lon)
+
+        existing_count = db.query(WeatherReading).filter(WeatherReading.region_key == region_key).count()
+        if existing_count < 14:
+            backfill_historical_weather(
+                db=db,
+                farm_id=str(farm.id),
+                region_key=region_key,
+                lat=farm.latitude,
+                lon=farm.longitude,
+                days=14,
+            )
+    except Exception as e:
+        # Non-blocking: failure to backfill should never prevent farm creation
+        pass
+
     return farm
 
 
