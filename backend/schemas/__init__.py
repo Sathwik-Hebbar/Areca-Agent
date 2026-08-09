@@ -8,6 +8,12 @@ from backend.schemas.weather import WeatherReadingResponse
 from backend.schemas.market import MarketPriceResponse
 from backend.schemas.advisory import AdvisoryCreate, FeedbackCreate, AdvisoryResponse
 from backend.schemas.coordinator import SynthesizeRequest, CoordinatorSynthesizeResponse
+from backend.schemas.learning import (
+    FeedbackSubmitRequest,
+    FeedbackSubmissionResponse,
+    LearningScoreResponse,
+    FeedbackSummaryResponse,
+)
 
 __all__ = [
     "UserRegisterRequest", "UserLoginRequest", "TokenResponse",
@@ -19,5 +25,7 @@ __all__ = [
     "WeatherReadingResponse",
     "MarketPriceResponse",
     "AdvisoryCreate", "FeedbackCreate", "AdvisoryResponse",
-    "SynthesizeRequest", "CoordinatorSynthesizeResponse"
+    "SynthesizeRequest", "CoordinatorSynthesizeResponse",
+    "FeedbackSubmitRequest", "FeedbackSubmissionResponse",
+    "LearningScoreResponse", "FeedbackSummaryResponse"
 ]
