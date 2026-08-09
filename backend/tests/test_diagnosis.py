@@ -97,7 +97,7 @@ def setup_diagnosis_env():
             crop_block_id=str(block_a.id),
             image_path="uploads/test_diagnosis_leaf.jpg",
             predicted_disease="mahali_koleroga",
-            cnn_confidence=0.91,
+            cnn_confidence=0.95,
             posterior_probability=None,
             validated=False,
         )
