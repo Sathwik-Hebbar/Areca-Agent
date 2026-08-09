@@ -7,6 +7,7 @@ from backend.schemas.disease import DiseaseDetectionCreate, DiseaseDetectionResp
 from backend.schemas.weather import WeatherReadingResponse
 from backend.schemas.market import MarketPriceResponse
 from backend.schemas.advisory import AdvisoryCreate, FeedbackCreate, AdvisoryResponse
+from backend.schemas.coordinator import SynthesizeRequest, CoordinatorSynthesizeResponse
 
 __all__ = [
     "UserRegisterRequest", "UserLoginRequest", "TokenResponse",
@@ -17,5 +18,6 @@ __all__ = [
     "DiseaseDetectionCreate", "DiseaseDetectionResponse",
     "WeatherReadingResponse",
     "MarketPriceResponse",
-    "AdvisoryCreate", "FeedbackCreate", "AdvisoryResponse"
+    "AdvisoryCreate", "FeedbackCreate", "AdvisoryResponse",
+    "SynthesizeRequest", "CoordinatorSynthesizeResponse"
 ]
