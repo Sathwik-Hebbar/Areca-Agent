@@ -20,6 +20,7 @@ from backend.agents.advisory.cache import get_cached_advisory
 from backend.agents.advisory.gemini_client import generate_gemini_advisory
 from backend.db.models.logs.advisory import Advisory, AdvisoryPriority, AdvisorySource
 from backend.agents.coordinator.weights import compute_situation_score
+from backend.agents.notifying.notifications import dispatch_advisory_notifications
 
 logger = logging.getLogger(__name__)
 
@@ -247,6 +248,9 @@ def synthesize_farm_status(
         db.add(new_advisory)
         db.commit()
         db.refresh(new_advisory)
+
+        # Automatically dispatch notifications according to Table 4.5 Priority Matrix
+        dispatch_advisory_notifications(db, new_advisory)
 
         advisory_dict = {
             "id": uuid.UUID(str(new_advisory.id)),

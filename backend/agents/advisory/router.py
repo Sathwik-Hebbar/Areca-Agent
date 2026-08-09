@@ -25,6 +25,8 @@ from backend.agents.market.data_gov_client import fetch_live_market_prices
 from backend.agents.advisory.cache import get_cached_advisory
 from backend.agents.advisory.gemini_client import generate_gemini_advisory
 
+from backend.agents.notifying.notifications import dispatch_advisory_notifications
+
 router = APIRouter(prefix="/agents/advisory", tags=["Advisory Agent"])
 
 
@@ -161,6 +163,9 @@ def generate_advisory(
     db.add(new_advisory)
     db.commit()
     db.refresh(new_advisory)
+
+    # Automatically dispatch notifications according to Table 4.5 Priority Matrix
+    dispatch_advisory_notifications(db, new_advisory)
 
     return AdvisoryGenerateResponse(
         id=uuid.UUID(str(new_advisory.id)),

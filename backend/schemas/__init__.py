@@ -14,6 +14,11 @@ from backend.schemas.learning import (
     LearningScoreResponse,
     FeedbackSummaryResponse,
 )
+from backend.schemas.notifying import (
+    NotificationSendRequest,
+    NotificationResponse,
+    HealthCheckResponse,
+)
 
 __all__ = [
     "UserRegisterRequest", "UserLoginRequest", "TokenResponse",
@@ -27,5 +32,6 @@ __all__ = [
     "AdvisoryCreate", "FeedbackCreate", "AdvisoryResponse",
     "SynthesizeRequest", "CoordinatorSynthesizeResponse",
     "FeedbackSubmitRequest", "FeedbackSubmissionResponse",
-    "LearningScoreResponse", "FeedbackSummaryResponse"
+    "LearningScoreResponse", "FeedbackSummaryResponse",
+    "NotificationSendRequest", "NotificationResponse", "HealthCheckResponse"
 ]
