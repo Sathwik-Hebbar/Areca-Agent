@@ -175,12 +175,13 @@ def test_coordinator_partial_failure_resilience(setup_coordinator_env, monkeypat
     h_a = setup_coordinator_env["h_a"]
     block_a_id = setup_coordinator_env["block_a_id"]
 
-    # Mock weather failure
+    # Mock weather failure and cache miss
     def mock_weather_fail(*args, **kwargs):
         raise ConnectionError("Weather API Down")
 
     from backend.agents.coordinator import orchestrator
     monkeypatch.setattr(orchestrator, "fetch_live_weather", mock_weather_fail)
+    monkeypatch.setattr(orchestrator, "get_grid_region_key", lambda lat, lon: f"uncached_test_region_{uuid.uuid4().hex[:6]}")
 
     payload = {"crop_block_id": block_a_id}
     res = client.post("/api/v1/agents/coordinator/synthesize", json=payload, headers=h_a)

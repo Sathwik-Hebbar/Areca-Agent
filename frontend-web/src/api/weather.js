@@ -1,1 +1,9 @@
-// TODO: API client for weather endpoints (current conditions, 7-day forecast, disease risk score)
+import apiClient from "./client";
+
+export const weatherApi = {
+  getCurrentWeather: (farmId, forceRefresh = false) => {
+    return apiClient.get(`/api/v1/agents/weather/current/${farmId}`, {
+      params: { force_refresh: forceRefresh },
+    });
+  },
+};

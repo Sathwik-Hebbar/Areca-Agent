@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+import logging
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.db.session import engine
 from backend.db.base import Base
+
+logger = logging.getLogger(__name__)
 
 # Import all models to ensure schema registration before table creation
 import backend.db.models  # noqa
@@ -33,6 +37,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global crash guard: Ensures unhandled agent errors return 500 JSON without killing the uvicorn process."""
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal agent error: {str(exc)}", "path": str(request.url.path)},
+    )
 
 
 @app.on_event("startup")

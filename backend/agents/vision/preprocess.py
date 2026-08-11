@@ -39,11 +39,29 @@ train_heavy_transform = transforms.Compose([
 
 def preprocess_image_bytes(image_bytes: bytes) -> torch.Tensor:
     """
-    Preprocess raw image bytes into a 4D batch tensor (1, 3, 224, 224) ready for CNN inference.
+    Preprocess raw image bytes into a 4D batch tensor (1, 3, 224, 224) ready for PyTorch CNN inference.
     """
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     tensor = eval_transform(image)
     return tensor.unsqueeze(0)  # Shape: (1, 3, 224, 224)
+
+
+def preprocess_image_keras(image_bytes: bytes):
+    """
+    Preprocess raw image bytes for Keras MobileNetV2 inference:
+    1. Loads PIL Image and converts to RGB
+    2. Resizes to 224x224
+    3. Normalizes pixel values to [-1, 1] using standard MobileNetV2 preprocessing: (x / 127.5) - 1.0
+    4. Returns 4D numpy array with shape (1, 224, 224, 3) and dtype float32
+    """
+    import numpy as np
+    import tensorflow as tf
+
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize((224, 224))
+    img_array = np.array(image, dtype=np.float32)
+    # tf.keras.applications.mobilenet_v2.preprocess_input scales to [-1, 1]
+    preprocessed = tf.keras.applications.mobilenet_v2.preprocess_input(img_array)
+    return np.expand_dims(preprocessed, axis=0)
 
 
 def get_train_transform(is_low_volume: bool = False):

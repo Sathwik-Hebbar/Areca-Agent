@@ -1,6 +1,6 @@
 import uuid
 import logging
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -10,10 +10,11 @@ from backend.db.models.core.farm import Farm
 from backend.db.models.core.crop_block import CropBlock
 from backend.db.models.agronomy.disease_detection import DiseaseDetection
 from backend.db.models.agronomy.farm_activity import ActivityType
+from backend.db.models.env.weather_reading import WeatherReading, WeatherSource
 from backend.core.router import _verify_crop_block_ownership
 from backend.core.activity_service import get_last_activity_of_type
 from backend.agents.diagnosis.bayesian import compute_posterior, get_hybrid_prior
-from backend.agents.weather.api_client import fetch_live_weather, DEFAULT_LAT, DEFAULT_LON
+from backend.agents.weather.api_client import fetch_live_weather, get_grid_region_key, DEFAULT_LAT, DEFAULT_LON
 from backend.agents.weather.risk_score import calculate_disease_risk_score
 from backend.agents.market.data_gov_client import fetch_live_market_prices
 from backend.agents.advisory.cache import get_cached_advisory
@@ -52,26 +53,63 @@ def synthesize_farm_status(
     if not farmer_profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farmer profile not found")
 
-    # 3. Weather Agent Context (with partial fallback resiliency)
+    # 3. Weather Agent Context (with 6-Hour Region-Based Cache Alignment)
     lat = float(farm.latitude) if farm and farm.latitude is not None else DEFAULT_LAT
     lon = float(farm.longitude) if farm and farm.longitude is not None else DEFAULT_LON
+    region_key = get_grid_region_key(lat, lon)
+    six_hours_ago = datetime.now(timezone.utc) - timedelta(hours=6)
 
     try:
-        weather_data = fetch_live_weather(lat, lon)
+        cached_reading = (
+            db.query(WeatherReading)
+            .filter(
+                WeatherReading.region_key == region_key,
+                WeatherReading.recorded_at >= six_hours_ago
+            )
+            .order_by(WeatherReading.recorded_at.desc())
+            .first()
+        )
+
+        if cached_reading:
+            w_temp = float(cached_reading.temperature)
+            w_hum = float(cached_reading.humidity)
+            w_rain = float(cached_reading.rainfall_mm)
+            w_source = cached_reading.source.value if hasattr(cached_reading.source, "value") else str(cached_reading.source)
+            w_synthetic = (cached_reading.source == WeatherSource.SYNTHETIC_FALLBACK)
+        else:
+            live_w = fetch_live_weather(lat, lon)
+            w_temp = float(live_w["temperature"])
+            w_hum = float(live_w["humidity"])
+            w_rain = float(live_w["rainfall_mm"])
+            w_source = live_w["weather_source"].value if hasattr(live_w["weather_source"], "value") else str(live_w["weather_source"])
+            w_synthetic = bool(live_w["is_synthetic"])
+
+            new_reading = WeatherReading(
+                farm_id=str(farm.id) if farm else None,
+                region_key=region_key,
+                temperature=w_temp,
+                humidity=w_hum,
+                rainfall_mm=w_rain,
+                source=live_w["weather_source"],
+            )
+            db.add(new_reading)
+            db.commit()
+            db.refresh(new_reading)
+
         risk_result = calculate_disease_risk_score(
-            humidity=weather_data["humidity"],
-            temperature=weather_data["temperature"],
-            rainfall_mm=weather_data["rainfall_mm"],
-            is_synthetic=weather_data["is_synthetic"],
+            humidity=w_hum,
+            temperature=w_temp,
+            rainfall_mm=w_rain,
+            is_synthetic=w_synthetic,
         )
         weather_summary = {
-            "temperature": weather_data["temperature"],
-            "humidity": weather_data["humidity"],
-            "rainfall_mm": weather_data["rainfall_mm"],
+            "temperature": w_temp,
+            "humidity": w_hum,
+            "rainfall_mm": w_rain,
             "disease_risk_score": risk_result.score,
             "disease_risk_level": risk_result.level.value,
-            "is_synthetic": weather_data["is_synthetic"],
-            "weather_source": weather_data["weather_source"].value,
+            "is_synthetic": w_synthetic,
+            "weather_source": w_source,
             "status": "ok",
         }
     except Exception as e:

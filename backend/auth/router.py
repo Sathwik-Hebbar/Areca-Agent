@@ -34,9 +34,11 @@ def register_farmer(payload: UserRegisterRequest, db: Session = Depends(get_db))
         user_id=new_user.id,
         full_name=payload.full_name,
         village=payload.village,
+        taluk=payload.taluk or payload.village,
         district=payload.district,
         state=payload.state,
-        preferred_language=payload.preferred_language
+        preferred_mandi=payload.preferred_mandi,
+        preferred_language=payload.preferred_language,
     )
     db.add(new_profile)
     db.commit()

@@ -31,10 +31,11 @@ class Settings(BaseSettings):
     # --- External APIs ---
     GEMINI_API_KEY: str = ""
     GEMINI_DAILY_BUDGET_CAP: int = 100
-
-    # WEATHER_API_KEY is deprecated as Weather Agent now uses Open-Meteo (no API key required)
-    WEATHER_API_KEY: str = ""
     DATA_GOV_IN_API_KEY: str = ""
+
+    # --- Vision Agent Backend ---
+    VISION_BACKEND: str = "keras"  # "keras" | "pytorch"
+    VISION_MODEL_STUB: bool = False
 
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),

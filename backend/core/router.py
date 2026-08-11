@@ -143,8 +143,6 @@ def remove_farm(
     return None
 
 
-# ── Crop Block Endpoints ──────────────────────────────────────────────────────
-
 @router.post("/crop-blocks", response_model=CropBlockResponse, status_code=status.HTTP_201_CREATED)
 def add_crop_block(
     payload: CropBlockCreate,
@@ -153,6 +151,17 @@ def add_crop_block(
 ):
     _verify_farm_ownership(db, str(payload.farm_id), str(current_user.id))
     return crop_block_service.create_crop_block(db, str(payload.farm_id), payload)
+
+
+@router.post("/farms/{farm_id}/crop-blocks", response_model=CropBlockResponse, status_code=status.HTTP_201_CREATED)
+def add_crop_block_nested(
+    farm_id: str,
+    payload: CropBlockCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _verify_farm_ownership(db, farm_id, str(current_user.id))
+    return crop_block_service.create_crop_block(db, farm_id, payload)
 
 
 @router.get("/farms/{farm_id}/crop-blocks", response_model=list[CropBlockResponse])

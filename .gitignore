@@ -40,9 +40,12 @@ Thumbs.db
 
 # Node / Frontend
 node_modules/
+dist/
 /dist/
+frontend-web/dist/
 /build/
 .next/
+frontend-web/.env
 
 # Application Logs (Root-anchored to avoid backend/db/models/logs collision)
 *.log

@@ -8,14 +8,16 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from backend.main import app
+from backend.config import settings
 from backend.db.session import SessionLocal
 from backend.db.models.core.user import User, UserRole
 from backend.db.models.core.farmer_profile import FarmerProfile
 from backend.db.models.core.farm import Farm
 from backend.db.models.core.crop_block import CropBlock
 from backend.auth.jwt_handler import hash_password, create_access_token
-from backend.agents.vision.preprocess import preprocess_image_bytes
-from backend.agents.vision.inference import run_vision_inference
+from backend.agents.vision.preprocess import preprocess_image_bytes, preprocess_image_keras
+from backend.agents.vision.inference import run_vision_inference, run_pytorch_vision_inference
+from backend.agents.vision.keras_inference import run_keras_vision_inference, KERAS_CLASS_MAPPING
 
 client = TestClient(app)
 
@@ -86,16 +88,40 @@ def setup_vision_env():
 def test_preprocessing_and_inference():
     img_bytes = create_sample_image_bytes()
 
-    # 1. Preprocessing output tensor shape
+    # 1. PyTorch Preprocessing output tensor shape
     tensor = preprocess_image_bytes(img_bytes)
-    assert tensor.shape == (1, 3, 224, 224), f"Unexpected tensor shape: {tensor.shape}"
+    assert tensor.shape == (1, 3, 224, 224), f"Unexpected PyTorch tensor shape: {tensor.shape}"
 
-    # 2. Inference output format
-    result = run_vision_inference(img_bytes)
-    assert "predicted_disease" in result
-    assert "confidence" in result
-    assert "inconclusive" in result
-    assert isinstance(result["inconclusive"], bool)
+    # 2. Keras Preprocessing output numpy array shape and scaling [-1, 1]
+    keras_arr = preprocess_image_keras(img_bytes)
+    assert keras_arr.shape == (1, 224, 224, 3), f"Unexpected Keras array shape: {keras_arr.shape}"
+    assert keras_arr.min() >= -1.0 and keras_arr.max() <= 1.0, "Keras image preprocessing must scale to [-1, 1]"
+
+    # 3. Keras Inference Direct
+    keras_result = run_keras_vision_inference(img_bytes)
+    assert "predicted_disease" in keras_result
+    assert "confidence" in keras_result
+    assert "inconclusive" in keras_result
+    assert keras_result["predicted_disease"] in list(KERAS_CLASS_MAPPING.values()) + ["Inconclusive"]
+
+    # 4. PyTorch Inference Direct
+    pytorch_result = run_pytorch_vision_inference(img_bytes)
+    assert "predicted_disease" in pytorch_result
+    assert "confidence" in pytorch_result
+    assert "inconclusive" in pytorch_result
+
+    # 5. Unified Dispatcher with settings.VISION_BACKEND
+    orig_backend = settings.VISION_BACKEND
+    try:
+        settings.VISION_BACKEND = "keras"
+        res_k = run_vision_inference(img_bytes)
+        assert res_k["backend"] in ["keras", "keras_stub"]
+
+        settings.VISION_BACKEND = "pytorch"
+        res_p = run_vision_inference(img_bytes)
+        assert res_p["backend"] in ["pytorch", "pytorch_stub"]
+    finally:
+        settings.VISION_BACKEND = orig_backend
 
 
 def test_vision_detect_endpoint(setup_vision_env):

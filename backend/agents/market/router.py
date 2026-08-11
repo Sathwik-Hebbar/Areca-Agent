@@ -19,6 +19,7 @@ router = APIRouter(prefix="/agents/market", tags=["Market Agent"])
 @router.get("/prices", response_model=MarketAgentResponse)
 def get_market_prices(
     mandi: str | None = Query(None, description="Target Mandi APMC name (e.g., Shivamogga, Sagar)"),
+    mandi_name: str | None = Query(None, description="Alias for mandi"),
     commodity: str = Query("Arecanut", description="Commodity name"),
     current_user: User | None = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
@@ -28,8 +29,8 @@ def get_market_prices(
     - If historical data >= 67 days, runs the 2-layer LSTM model (forecast_model='lstm').
     - If historical data < 67 days, runs linear trend regression fallback (forecast_model='linear_trend_regression').
     """
-    # 1. Determine effective mandi name
-    effective_mandi = mandi
+    # 1. Determine effective mandi name (accept either 'mandi' or 'mandi_name')
+    effective_mandi = mandi or mandi_name
     if not effective_mandi and current_user:
         profile = db.query(FarmerProfile).filter(FarmerProfile.user_id == current_user.id).first()
         if profile and profile.preferred_mandi:

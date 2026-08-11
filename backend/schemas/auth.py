@@ -9,8 +9,10 @@ class UserRegisterRequest(BaseModel):
     password: str = Field(..., min_length=6)
     full_name: str
     village: str | None = None
+    taluk: str | None = None
     district: str | None = None
     state: str | None = None
+    preferred_mandi: str | None = None
     preferred_language: str = "en"
 
 

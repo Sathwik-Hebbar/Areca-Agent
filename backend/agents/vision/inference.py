@@ -1,3 +1,13 @@
+"""
+Vision Agent Inference Dispatcher.
+
+Supports dual backends:
+- "keras": Uses Keras MobileNetV2 (mobilenetv2_best.h5) with [-1, 1] scaling
+- "pytorch": Uses PyTorch MobileNetV2 (arecanut_cnn.pt) with ImageNet normalization
+
+Configured via settings.VISION_BACKEND ("keras" | "pytorch").
+"""
+
 import os
 import torch
 import torch.nn.functional as F
@@ -6,61 +16,52 @@ from backend.config import settings
 from backend.agents.vision.model import ArecanutCNN, CLASS_NAMES
 from backend.agents.vision.preprocess import preprocess_image_bytes
 
-WEIGHTS_PATH = Path(__file__).parent / "weights" / "arecanut_cnn.pt"
+PYTORCH_WEIGHTS_PATH = Path(__file__).parent / "weights" / "arecanut_cnn.pt"
 CONFIDENCE_THRESHOLD = 0.70  # 70% threshold per spec
 
-_model_cache = None
+_pytorch_model_cache = None
 
 
-def get_model() -> ArecanutCNN | None:
-    """Lazy load and cache model weights if available."""
-    global _model_cache
-    if _model_cache is not None:
-        return _model_cache
+def get_pytorch_model() -> ArecanutCNN | None:
+    """Lazy load and cache PyTorch model weights if available."""
+    global _pytorch_model_cache
+    if _pytorch_model_cache is not None:
+        return _pytorch_model_cache
 
-    if WEIGHTS_PATH.exists():
+    if PYTORCH_WEIGHTS_PATH.exists():
         try:
             model = ArecanutCNN(num_classes=len(CLASS_NAMES), pretrained=False)
-            model.load_state_dict(torch.load(WEIGHTS_PATH, map_location="cpu"))
+            model.load_state_dict(torch.load(PYTORCH_WEIGHTS_PATH, map_location="cpu"))
             model.eval()
-            _model_cache = model
-            return _model_cache
+            _pytorch_model_cache = model
+            return _pytorch_model_cache
         except Exception as e:
-            print(f"[WARN] Failed to load Vision model checkpoint: {e}")
+            print(f"[WARN] Failed to load PyTorch Vision model checkpoint: {e}")
             return None
     return None
 
 
-def run_vision_inference(image_bytes: bytes) -> dict:
+def run_pytorch_vision_inference(image_bytes: bytes) -> dict:
     """
-    Run disease prediction on input image bytes.
-    Enforces 70% confidence thresholding. If max score < 0.70, marks as inconclusive.
-    Falls back to structured stub prediction if weights are missing or VISION_MODEL_STUB is true.
+    Run disease prediction on input image bytes using the PyTorch model.
     """
     # 1. Always execute real image preprocessing to validate format/size (224x224 RGB)
     tensor = preprocess_image_bytes(image_bytes)
 
     # 2. Check if stub mode is active or weights are missing
-    model = get_model()
-    use_stub = getattr(settings, "VISION_MODEL_STUB", True) or (model is None)
+    model = get_pytorch_model()
+    use_stub = getattr(settings, "VISION_MODEL_STUB", False) or (model is None)
 
     if use_stub:
-        # Structured realistic stub inference
         predicted_disease = "yellow_leaf_disease"
         confidence = 0.91
         is_inconclusive = confidence < CONFIDENCE_THRESHOLD
 
-        if is_inconclusive:
-            return {
-                "predicted_disease": "Inconclusive",
-                "confidence": confidence,
-                "inconclusive": True,
-            }
-
         return {
-            "predicted_disease": predicted_disease,
+            "predicted_disease": "Inconclusive" if is_inconclusive else predicted_disease,
             "confidence": confidence,
-            "inconclusive": False,
+            "inconclusive": is_inconclusive,
+            "backend": "pytorch_stub",
         }
 
     # 3. Real PyTorch model inference
@@ -77,10 +78,26 @@ def run_vision_inference(image_bytes: bytes) -> dict:
                 "predicted_disease": "Inconclusive",
                 "confidence": confidence,
                 "inconclusive": True,
+                "backend": "pytorch",
             }
 
         return {
             "predicted_disease": predicted_class,
             "confidence": confidence,
             "inconclusive": False,
+            "backend": "pytorch",
         }
+
+
+def run_vision_inference(image_bytes: bytes) -> dict:
+    """
+    Unified entry point for Vision Agent inference.
+    Dispatches to configured backend ('keras' or 'pytorch') via settings.VISION_BACKEND.
+    """
+    backend_choice = getattr(settings, "VISION_BACKEND", "keras").lower()
+
+    if backend_choice == "keras":
+        from backend.agents.vision.keras_inference import run_keras_vision_inference
+        return run_keras_vision_inference(image_bytes)
+    else:
+        return run_pytorch_vision_inference(image_bytes)
