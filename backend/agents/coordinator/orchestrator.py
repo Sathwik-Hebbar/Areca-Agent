@@ -175,14 +175,28 @@ def synthesize_farm_status(
             "status": "default_healthy",
         }
 
-    # 5. Market Agent Context (with partial fallback resiliency)
+    # 5. Market Agent Context (align with DB cache for 100% consistency across pages)
     preferred_mandi = farmer_profile.preferred_mandi or "Shivamogga APMC"
     try:
-        market_data = fetch_live_market_prices(mandi_name=preferred_mandi)
-        m_price = market_data["prices"][0]["price_per_kg"] if market_data["prices"] else 475.0
+        cached_m = (
+            db.query(MarketPrice)
+            .filter(
+                MarketPrice.mandi_name.ilike(f"%{preferred_mandi.split()[0]}%"),
+                MarketPrice.commodity.ilike("%Arecanut%"),
+            )
+            .order_by(MarketPrice.price_date.desc())
+            .first()
+        )
+
+        if cached_m:
+            m_price = float(cached_m.price_per_kg)
+        else:
+            market_data = fetch_live_market_prices(mandi_name=preferred_mandi)
+            m_price = float(market_data["prices"][0]["price_per_kg"]) if market_data["prices"] else 475.0
+
         market_summary = {
             "mandi_name": preferred_mandi,
-            "current_price_per_kg": m_price,
+            "current_price_per_kg": round(m_price, 2),
             "price_trend": "rising",
             "forecast_model": "linear_trend_regression",
             "status": "ok",

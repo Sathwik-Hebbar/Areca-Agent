@@ -9,8 +9,9 @@ export const diseaseApi = {
 
     return apiClient.post("/api/v1/agents/vision/detect", formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": undefined,
       },
+      timeout: 60000,
     });
   },
 

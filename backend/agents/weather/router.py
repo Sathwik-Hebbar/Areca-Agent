@@ -83,6 +83,13 @@ def get_current_weather(
         source = cached_reading.source
         recorded_at = cached_reading.recorded_at
         is_synthetic = (source == WeatherSource.SYNTHETIC_FALLBACK)
+        # Fetch fresh hourly & daily forecast
+        live_forecast_data = fetch_live_weather(
+            lat if location_source == LocationSource.FARM_COORDINATES else None,
+            lon if location_source == LocationSource.FARM_COORDINATES else None,
+        )
+        hourly_forecast = live_forecast_data.get("hourly_forecast", [])
+        weekly_forecast = live_forecast_data.get("weekly_forecast", [])
     else:
         # Cache miss or forced refresh: fetch live or synthetic weather
         live_data = fetch_live_weather(
@@ -109,6 +116,8 @@ def get_current_weather(
         source = new_reading.source
         recorded_at = new_reading.recorded_at
         is_synthetic = live_data["is_synthetic"]
+        hourly_forecast = live_data.get("hourly_forecast", [])
+        weekly_forecast = live_data.get("weekly_forecast", [])
 
     # 4. Compute Disease Risk Score & Level (with synthetic flag)
     disease_risk = calculate_disease_risk_score(
@@ -146,4 +155,6 @@ def get_current_weather(
         recorded_at=recorded_at,
         disease_risk=disease_risk,
         forecast=forecast_items,
+        hourly_forecast=hourly_forecast,
+        weekly_forecast=weekly_forecast,
     )

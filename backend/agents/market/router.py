@@ -8,7 +8,7 @@ from backend.db.models.core.user import User
 from backend.db.models.core.farmer_profile import FarmerProfile
 from backend.db.models.market.market_price import MarketPrice
 from backend.auth.jwt_handler import get_current_user_optional
-from backend.schemas.market import MarketAgentResponse, MarketPriceResponse
+from backend.schemas.market import MarketAgentResponse, MarketPriceResponse, VarietyPriceItem
 from backend.agents.market.data_gov_client import fetch_live_market_prices, sync_market_prices
 from backend.agents.market.lstm_model import generate_lstm_forecast, load_market_lstm, LSTM_MIN_DATA_THRESHOLD
 from backend.agents.market.fallback_model import generate_fallback_price_forecast
@@ -25,7 +25,7 @@ def get_market_prices(
     db: Session = Depends(get_db),
 ):
     """
-    Market Agent: Fetches current Mandi price, historical arrivals, and 7-day forecast.
+    Market Agent: Fetches current Mandi price, historical arrivals, multi-variety prices, and 7-day forecast.
     - If historical data >= 67 days, runs the 2-layer LSTM model (forecast_model='lstm').
     - If historical data < 67 days, runs linear trend regression fallback (forecast_model='linear_trend_regression').
     """
@@ -103,6 +103,24 @@ def get_market_prices(
             periods=7,
         )
 
+    # 6. Extract variety prices breakdown
+    live_varieties_res = fetch_live_market_prices(mandi_name=effective_mandi)
+    variety_items = []
+    seen_varieties = set()
+    for v in live_varieties_res.get("prices", []):
+        v_name = v.get("variety", "Rashi")
+        if v_name not in seen_varieties:
+            seen_varieties.add(v_name)
+            variety_items.append(
+                VarietyPriceItem(
+                    variety=v_name,
+                    price_per_kg=float(v["price_per_kg"]),
+                    price_date=v["price_date"],
+                    source=v["source"],
+                    description=v.get("description", f"{v_name} arecanut grade"),
+                )
+            )
+
     # Format historical records for response (latest 20)
     pydantic_history = [
         MarketPriceResponse(
@@ -123,6 +141,7 @@ def get_market_prices(
         price_date=latest_date,
         source=source_str,
         is_synthetic=is_synthetic,
+        variety_prices=variety_items,
         forecast=forecast_items,
         historical_prices=pydantic_history,
     )

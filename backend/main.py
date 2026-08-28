@@ -50,10 +50,22 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 @app.on_event("startup")
-def startup_db_check():
-    """Ensure database tables are created (especially when running sqlite or local dev)."""
+def startup_checks():
+    """Ensure database tables are created and warm up ML models asynchronously."""
     if settings.DATABASE_URL.startswith("sqlite"):
         Base.metadata.create_all(bind=engine)
+
+    import threading
+
+    def _bg_warmup():
+        try:
+            if getattr(settings, "VISION_BACKEND", "keras").lower() == "keras":
+                from backend.agents.vision.keras_inference import warmup_keras_model
+                warmup_keras_model()
+        except Exception as e:
+            logger.warning(f"Vision model warmup skipped: {e}")
+
+    threading.Thread(target=_bg_warmup, daemon=True, name="model_warmup").start()
 
 
 @app.get("/", tags=["Health Check"])

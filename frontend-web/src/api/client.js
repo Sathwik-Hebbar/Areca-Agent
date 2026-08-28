@@ -22,6 +22,9 @@ apiClient.interceptors.request.use(
         // config.headers['X-Auth-Debug'] = masked;
       }
     }
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -44,8 +47,12 @@ apiClient.interceptors.response.use(
         error.response.data?.message ||
         `Request failed with status ${error.response.status}`;
       return Promise.reject(new Error(message));
+    } else if (error.code === "ECONNABORTED") {
+      return Promise.reject(new Error("Request timed out (server took too long to respond)."));
     } else if (error.request) {
-      return Promise.reject(new Error("Unable to reach ArecaAgent backend server. Please check connection."));
+      return Promise.reject(
+        new Error(`Unable to reach ArecaAgent backend server at ${API_BASE_URL} (${error.message || "Connection refused"}).`)
+      );
     }
     return Promise.reject(error);
   }

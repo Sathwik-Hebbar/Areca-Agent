@@ -38,7 +38,7 @@ def generate_gemini_advisory(context_dict: dict) -> dict:
         headers = {"Content-Type": "application/json"}
 
         try:
-            with httpx.Client(timeout=25.0) as client:
+            with httpx.Client(timeout=8.0) as client:
                 resp = client.post(url, json=payload, headers=headers)
                 if resp.status_code == 200:
                     res_json = resp.json()

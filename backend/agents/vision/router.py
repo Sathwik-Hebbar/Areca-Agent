@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from pathlib import Path
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
@@ -25,19 +26,19 @@ async def detect_disease(
     """
     Vision Agent Endpoint: Accepts leaf/fruit photo upload + crop_block_id.
     1. Verifies authenticated user owns the specified crop_block_id (raises 403 if not).
-    2. Runs CNN disease inference (with 70% thresholding).
+    2. Runs CNN disease inference (with 70% thresholding) in a worker thread pool.
     3. Saves uploaded image asset to local backend/data/uploads/.
     4. Inserts disease_detections record into agronomy schema.
     """
     # 1. Ownership check (reuses existing core/router.py helper)
     _verify_crop_block_ownership(db, str(crop_block_id), str(current_user.id))
 
-    # 2. Read image bytes and run Vision inference
+    # 2. Read image bytes and run Vision inference in thread pool
     image_bytes = await file.read()
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
 
-    inference_result = run_vision_inference(image_bytes)
+    inference_result = await asyncio.to_thread(run_vision_inference, image_bytes)
 
     # 3. Save uploaded image to disk
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)

@@ -31,6 +31,26 @@ class DiseaseRiskScore(BaseModel):
     factors: DiseaseRiskFactorBreakdown
 
 
+class HourlyWeatherItem(BaseModel):
+    time: str  # e.g., "09:00", "10:00"
+    temperature: float
+    humidity: float
+    precipitation_probability: float
+    rain_mm: float
+
+
+class DailyWeatherItem(BaseModel):
+    date: str  # e.g., "2026-08-19"
+    day_name: str  # e.g., "Wed", "Thu"
+    temp_max: float
+    temp_min: float
+    precipitation_sum_mm: float
+    precipitation_probability_max: float
+    disease_risk_score: float
+    disease_risk_level: str
+    weather_condition: str  # e.g., "Rainy", "Cloudy", "Sunny"
+
+
 class WeatherForecastItem(BaseModel):
     timestamp: datetime
     predicted_temperature: float
@@ -64,5 +84,7 @@ class WeatherAgentResponse(BaseModel):
     recorded_at: datetime
     disease_risk: DiseaseRiskScore
     forecast: list[WeatherForecastItem] = []
+    hourly_forecast: list[HourlyWeatherItem] = []
+    weekly_forecast: list[DailyWeatherItem] = []
 
     model_config = ConfigDict(from_attributes=True)

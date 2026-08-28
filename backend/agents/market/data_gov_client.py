@@ -77,9 +77,11 @@ def fetch_live_market_prices(mandi_name: str = "Shivamogga", limit: int = 100) -
     logger.warning("Using synthetic_fallback market prices for Karnataka APMC.")
     today = date.today()
     synthetic_prices = [
-        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Rashi", "price_per_kg": 475.50, "price_date": today, "source": "synthetic_fallback"},
-        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Bette", "price_per_kg": 510.00, "price_date": today - timedelta(days=1), "source": "synthetic_fallback"},
-        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Chali", "price_per_kg": 380.00, "price_date": today - timedelta(days=2), "source": "synthetic_fallback"},
+        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Rashi", "price_per_kg": 475.50, "price_date": today, "source": "synthetic_fallback", "description": "Red whole boiled arecanut (Premium)"},
+        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Bette", "price_per_kg": 566.09, "price_date": today, "source": "synthetic_fallback", "description": "Half-cut boiled arecanut (Standard)"},
+        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Chali", "price_per_kg": 380.00, "price_date": today, "source": "synthetic_fallback", "description": "Sun-dried ripe white arecanut"},
+        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Gorabal", "price_per_kg": 420.00, "price_date": today, "source": "synthetic_fallback", "description": "Unboiled dried whole arecanut"},
+        {"mandi_name": mandi_name or "Shivamogga APMC", "commodity": "Arecanut", "variety": "Api", "price_per_kg": 540.00, "price_date": today, "source": "synthetic_fallback", "description": "Tender green boiled arecanut"},
     ]
     return {
         "prices": synthetic_prices,
