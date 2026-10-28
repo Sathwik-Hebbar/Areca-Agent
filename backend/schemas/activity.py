@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from backend.db.models.agronomy.farm_activity import ActivityType, LoggedVia
 
 
@@ -9,12 +9,26 @@ class ActivityCreate(BaseModel):
     activity_type: ActivityType
     activity_date: date
     product_used: str | None = None
+    chemical_name: str | None = None
+    notes: str | None = None
     quantity: float | None = None
     quantity_unit: str | None = None
     cost: float | None = None
     performed_by: str | None = None
     details: dict | None = None
     logged_via: LoggedVia = LoggedVia.APP
+
+    @field_validator("activity_type", mode="before")
+    @classmethod
+    def parse_activity_type(cls, val):
+        if isinstance(val, str):
+            val_lower = val.lower().strip()
+            if val_lower in ["harvest", "harvesting"]:
+                return ActivityType.HARVESTING
+            for member in ActivityType:
+                if member.value == val_lower or member.name.lower() == val_lower:
+                    return member
+        return val
 
 
 class ActivityUpdate(BaseModel):

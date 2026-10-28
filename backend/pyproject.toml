@@ -18,5 +18,7 @@ dependencies = [
     "pyjwt",
     "passlib",
     "python-dotenv",
-    "httpx"
+    "httpx",
+    "minimalmodbus",
+    "pyserial"
 ]

@@ -185,15 +185,25 @@ def seed():
         )
         db.add_all([weather1, weather2])
 
-        # 9. env.soil_sensor_readings
+        # 9. env.soil_sensor_readings (keyed to crop_block_id; all values UNCALIBRATED prototype units)
         soil1 = SoilSensorReading(
-            device_id=device.id,
-            moisture_pct=42.5,
+            crop_block_id=crop_block.id,
+            nitrogen=45.0,       # UNCALIBRATED prototype units (raw register value)
+            phosphorus=32.0,     # UNCALIBRATED prototype units (empirical: 4093 - raw_p)
+            potassium=78.0,      # UNCALIBRATED prototype units (raw register value)
+            raw_nitrogen=45,
+            raw_phosphorus=4061,  # derived: 4093 - 4061 = 32
+            raw_potassium=78,
             recorded_at=now_dt - timedelta(hours=4),
         )
         soil2 = SoilSensorReading(
-            device_id=device.id,
-            moisture_pct=39.0,
+            crop_block_id=crop_block.id,
+            nitrogen=52.0,       # UNCALIBRATED prototype units
+            phosphorus=28.0,     # UNCALIBRATED prototype units
+            potassium=91.0,      # UNCALIBRATED prototype units
+            raw_nitrogen=52,
+            raw_phosphorus=4065,  # derived: 4093 - 4065 = 28
+            raw_potassium=91,
             recorded_at=now_dt - timedelta(hours=1),
         )
         db.add_all([soil1, soil2])

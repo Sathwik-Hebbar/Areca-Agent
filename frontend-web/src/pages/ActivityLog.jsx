@@ -6,7 +6,7 @@ import { useFarm } from "../context/FarmContext";
 export const ActivityLog = () => {
   const { selectedCropBlock } = useFarm();
   const [activities, setActivities] = useState([]);
-  const [activityType, setActivityType] = useState("SPRAYING");
+  const [activityType, setActivityType] = useState("spraying");
   const [activityDate, setActivityDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [chemicalName, setChemicalName] = useState("1% Bordeaux mixture");
@@ -36,7 +36,7 @@ export const ActivityLog = () => {
         activity_type: activityType,
         activity_date: activityDate,
         notes,
-        chemical_name: activityType === "SPRAYING" || activityType === "FERTILIZER" ? chemicalName : null,
+        chemical_name: activityType === "spraying" || activityType === "fertilizer" ? chemicalName : null,
       });
       setNotes("");
       await fetchActivities();
@@ -63,11 +63,14 @@ export const ActivityLog = () => {
             <div className="form-group">
               <label className="form-label">Activity Type</label>
               <select className="form-select" value={activityType} onChange={(e) => setActivityType(e.target.value)}>
-                <option value="SPRAYING">Spraying (Fungicide / Pesticide)</option>
-                <option value="FERTILIZER">Fertilizer Application</option>
-                <option value="IRRIGATION">Irrigation</option>
-                <option value="HARVEST">Harvest</option>
-                <option value="PRUNING">Pruning / Sanitation</option>
+                <option value="spraying">Spraying (Fungicide / Pesticide)</option>
+                <option value="fertilizer">Fertilizer Application</option>
+                <option value="irrigation">Irrigation</option>
+                <option value="harvesting">Harvest</option>
+                <option value="pruning">Pruning / Sanitation</option>
+                <option value="weeding">Weeding</option>
+                <option value="soil_test">Soil Test</option>
+                <option value="other">Other</option>
               </select>
             </div>
 

@@ -52,6 +52,9 @@ class CropBlock(Base):
     feedbacks: Mapped[list["Feedback"]] = relationship(
         "Feedback", back_populates="crop_block"
     )
+    soil_readings: Mapped[list["SoilSensorReading"]] = relationship(
+        "SoilSensorReading", back_populates="crop_block", cascade="all, delete-orphan"
+    )
 
     @property
     def age_years(self) -> float:

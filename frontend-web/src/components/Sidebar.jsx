@@ -10,6 +10,7 @@ import {
   User,
   LogOut,
   Leaf,
+  FlaskConical,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -21,6 +22,7 @@ export const Sidebar = () => {
     { to: "/detect", label: "Disease Detection", icon: Camera },
     { to: "/weather", label: "Weather Risk", icon: CloudSun },
     { to: "/market", label: "APMC Market", icon: TrendingUp },
+    { to: "/soil-monitor", label: "Soil Monitor", icon: FlaskConical },
     { to: "/advisory", label: "AI Advisory", icon: Sparkles },
     { to: "/activities", label: "Activity Log", icon: ClipboardList },
     { to: "/profile", label: "Farmer Profile", icon: User },

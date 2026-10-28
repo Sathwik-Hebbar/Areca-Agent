@@ -6,9 +6,23 @@ from backend.schemas.activity import ActivityCreate, ActivityUpdate
 
 
 def log_activity(db: Session, crop_block_id: str, data: ActivityCreate) -> FarmActivity:
-    payload_dict = data.model_dump()
-    payload_dict["crop_block_id"] = str(crop_block_id)
-    activity = FarmActivity(**payload_dict)
+    product_used = data.product_used or data.chemical_name
+    details = dict(data.details) if data.details else {}
+    if data.notes and "notes" not in details:
+        details["notes"] = data.notes
+
+    activity = FarmActivity(
+        crop_block_id=str(crop_block_id),
+        activity_type=data.activity_type,
+        activity_date=data.activity_date,
+        product_used=product_used,
+        quantity=data.quantity,
+        quantity_unit=data.quantity_unit,
+        cost=data.cost,
+        performed_by=data.performed_by,
+        details=details if details else None,
+        logged_via=data.logged_via,
+    )
     db.add(activity)
     db.commit()
     db.refresh(activity)

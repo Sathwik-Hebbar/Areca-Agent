@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     VISION_BACKEND: str = "keras"  # "keras" | "pytorch"
     VISION_MODEL_STUB: bool = False
 
+    # --- Soil Sensor Hardware (USB-to-RS485 Modbus RTU) ---
+    SENSOR_COM_PORT: str = "COM8"
+    SENSOR_BAUD_RATE: int = 4800
+    SENSOR_SLAVE_ID: int = 1
+    SENSOR_TIMEOUT_SECONDS: float = 1.0
+
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",

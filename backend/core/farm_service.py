@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from backend.db.models.core.farm import Farm
@@ -11,6 +12,8 @@ from backend.agents.weather.api_client import (
     DEFAULT_LAT,
     DEFAULT_LON,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def create_farm(db: Session, farmer_id: str, data: FarmCreate) -> Farm:
@@ -37,7 +40,7 @@ def create_farm(db: Session, farmer_id: str, data: FarmCreate) -> Farm:
             )
     except Exception as e:
         # Non-blocking: failure to backfill should never prevent farm creation
-        pass
+        logger.exception("Historical weather backfill failed for farm %s", farm.id)
 
     return farm
 

@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { FarmProvider } from "./context/FarmContext";
+import { SoilSensorProvider } from "./context/SoilSensorContext";
 import { ProtectedLayout } from "./components/ProtectedRoute";
 
 import { Login } from "./pages/Login";
@@ -13,13 +14,15 @@ import { Market } from "./pages/Market";
 import { Advisory } from "./pages/Advisory";
 import { ActivityLog } from "./pages/ActivityLog";
 import { FarmerProfile } from "./pages/FarmerProfile";
+import { SoilMonitor } from "./pages/SoilMonitor";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <FarmProvider>
-          <Routes>
+          <SoilSensorProvider>
+            <Routes>
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -33,11 +36,13 @@ export default function App() {
               <Route path="/advisory" element={<Advisory />} />
               <Route path="/activities" element={<ActivityLog />} />
               <Route path="/profile" element={<FarmerProfile />} />
+              <Route path="/soil-monitor" element={<SoilMonitor />} />
             </Route>
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+            </Routes>
+          </SoilSensorProvider>
         </FarmProvider>
       </AuthProvider>
     </BrowserRouter>

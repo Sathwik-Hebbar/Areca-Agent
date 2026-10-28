@@ -22,6 +22,7 @@ from backend.agents.advisory.router import router as advisory_router
 from backend.agents.coordinator.router import router as coordinator_router
 from backend.agents.learning.router import router as learning_router
 from backend.agents.notifying.router import router as notifying_router
+from backend.hardware.router import router as hardware_router
 
 app = FastAPI(
     title="ArecaAgent Backend API",
@@ -90,3 +91,4 @@ app.include_router(advisory_router, prefix=api_prefix)
 app.include_router(coordinator_router, prefix=api_prefix)
 app.include_router(learning_router, prefix=api_prefix)
 app.include_router(notifying_router, prefix=api_prefix)
+app.include_router(hardware_router, prefix=api_prefix)

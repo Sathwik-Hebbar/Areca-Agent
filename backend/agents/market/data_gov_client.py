@@ -32,7 +32,7 @@ def fetch_live_market_prices(mandi_name: str = "Shivamogga", limit: int = 100) -
         headers = {"User-Agent": "Mozilla/5.0"}
 
         try:
-            with httpx.Client(timeout=30.0, headers=headers) as client:
+            with httpx.Client(timeout=3.5, headers=headers) as client:
                 resp = client.get(DATA_GOV_BASE_URL, params=params)
                 if resp.status_code == 200:
                     data = resp.json()

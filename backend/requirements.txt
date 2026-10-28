@@ -14,6 +14,8 @@ pandas==2.2.1
 numpy==1.26.4
 scikit-learn==1.4.1.post1
 google-generativeai==0.4.1
+minimalmodbus>=2.1.1
+pyserial>=3.5
 
 # PyTorch Deep Learning Dependencies
 # Default CPU build:

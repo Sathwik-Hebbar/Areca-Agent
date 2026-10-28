@@ -11,6 +11,7 @@ from backend.db.models.core.crop_block import CropBlock
 from backend.db.models.agronomy.disease_detection import DiseaseDetection
 from backend.db.models.agronomy.farm_activity import ActivityType
 from backend.db.models.env.weather_reading import WeatherReading, WeatherSource
+from backend.db.models.market.market_price import MarketPrice
 from backend.core.router import _verify_crop_block_ownership
 from backend.core.activity_service import get_last_activity_of_type
 from backend.agents.diagnosis.bayesian import compute_posterior, get_hybrid_prior

@@ -50,3 +50,4 @@ frontend-web/.env
 # Application Logs (Root-anchored to avoid backend/db/models/logs collision)
 *.log
 /logs/
+
